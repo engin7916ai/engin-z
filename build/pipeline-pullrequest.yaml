@@ -1,0 +1,22 @@
+
+# Do not run on CI
+trigger: none
+
+pr:
+  autoCancel: false
+  branches:
+    include:
+    - master
+
+pool:
+  vmImage: 'windows-2019'
+  demands:
+  - msbuild
+  - visualstudio    
+
+variables:
+  BuildPlatform: 'any cpu'
+  BuildConfiguration: 'debug'
+
+steps:  
+- template: template-ci-and-pr.yaml
