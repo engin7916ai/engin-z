@@ -1,0 +1,55 @@
+
+# Release builds are only manually triggered.
+trigger: none
+pr: none
+
+# Create a daily midnight build for release builds on master to ensure our release builds function
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight build
+  branches:
+    include:
+    - master
+
+pool:
+  vmImage: 'windows-latest'
+  demands:
+  - msbuild
+  - visualstudio
+
+variables:
+  BuildPlatform: 'any cpu'
+  BuildConfiguration: 'release'
+
+steps:
+
+- task: UseDotNet@2
+  displayName: 'Use .Net Core sdk 3.x'
+  inputs:
+    version: 3.x
+
+# Run pre-build code analysis (policheck, credscan, etc)
+- template: template-prebuild-code-analysis.yaml
+
+# Bootstrap the build
+- template: template-bootstrap-build.yaml
+
+# Nuget Restore and Build LibsAndSamples.sln
+- template: template-restore-build-libsandsamples.yaml
+  parameters:
+    BuildPlatform: '$(BuildPlatform)'
+    BuildConfiguration: '$(BuildConfiguration)'
+    MsalClientSemVer: $(MsalClientSemVer)
+
+# Run Post-build code analysis (e.g. Roslyn)
+- template: template-postbuild-code-analysis.yaml
+
+# Pack and sign all of the nuget packages
+- template: template-pack-and-sign-all-nugets.yaml
+
+# Publish nuget packages and symbols to VSTS package manager.
+- template: template-publish-packages-and-symbols.yaml
+
+# Publish analysis and cleanup
+- template: template-publish-analysis-and-cleanup.yaml
+

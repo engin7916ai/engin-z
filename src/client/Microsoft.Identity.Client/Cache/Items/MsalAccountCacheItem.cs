@@ -1,0 +1,147 @@
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Microsoft.Identity.Client.Cache.Keys;
+using Microsoft.Identity.Client.Internal;
+using Microsoft.Identity.Client.Utils;
+using Microsoft.Identity.Json.Linq;
+
+namespace Microsoft.Identity.Client.Cache.Items
+{
+    internal class MsalAccountCacheItem : MsalCacheItemBase
+    {
+        internal MsalAccountCacheItem()
+        {
+            AuthorityType = CacheAuthorityType.MSSTS.ToString();
+        }
+
+        internal MsalAccountCacheItem(
+            string preferredCacheEnv,
+            string clientInfo,
+            string homeAccountId,
+            IdToken idToken,
+            string preferredUsername,
+            string tenantId)
+            : this()
+        {
+            Init(
+                preferredCacheEnv,
+                idToken?.ObjectId,
+                clientInfo,
+                homeAccountId,
+                idToken?.Name,
+                preferredUsername,
+                tenantId,
+                idToken?.GivenName,
+                idToken?.FamilyName);
+        }
+
+        internal /* for test */ MsalAccountCacheItem(
+            string environment,
+            string localAccountId,
+            string rawClientInfo,
+            string homeAccountId,
+            string name,
+            string preferredUsername,
+            string tenantId,
+            string givenName,
+            string familyName)
+            : this()
+        {
+            Init(
+                environment,
+                localAccountId,
+                rawClientInfo,
+                homeAccountId,
+                name,
+                preferredUsername,
+                tenantId,
+                givenName,
+                familyName);
+        }
+
+        internal string TenantId { get; set; }
+        internal string PreferredUsername { get; set; }
+        internal string Name { get; set; }
+        internal string GivenName { get; set; }
+        internal string FamilyName { get; set; }
+        internal string LocalAccountId { get; set; }
+        internal string AuthorityType { get; set; }
+
+        private void Init(
+            string environment,
+            string localAccountId,
+            string rawClientInfo,
+            string homeAccountId,
+            string name,
+            string preferredUsername,
+            string tenantId,
+            string givenName,
+            string familyName)
+        {
+            Environment = environment;
+            PreferredUsername = preferredUsername;
+            Name = name;
+            TenantId = tenantId;
+            LocalAccountId = localAccountId;
+            RawClientInfo = rawClientInfo;
+            GivenName = givenName;
+            FamilyName = familyName;
+            HomeAccountId = homeAccountId;
+        }
+
+        internal MsalAccountCacheKey GetKey()
+        {
+            return new MsalAccountCacheKey(Environment, TenantId, HomeAccountId, PreferredUsername, AuthorityType);
+        }
+
+        internal static MsalAccountCacheItem FromJsonString(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            return FromJObject(JObject.Parse(json));
+        }
+
+        internal static MsalAccountCacheItem FromJObject(JObject j)
+        {
+            var item = new MsalAccountCacheItem
+            {
+                PreferredUsername = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.Username),
+                Name = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.Name),
+                GivenName = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.GivenName),
+                FamilyName = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.FamilyName),
+                LocalAccountId = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.LocalAccountId),
+                AuthorityType = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.AuthorityType),
+                TenantId = JsonUtils.ExtractExistingOrEmptyString(j, StorageJsonKeys.Realm),
+            };
+
+            item.PopulateFieldsFromJObject(j);
+
+            return item;
+        }
+
+        internal override JObject ToJObject()
+        {
+            var json = base.ToJObject();
+
+            SetItemIfValueNotNull(json, StorageJsonKeys.Username, PreferredUsername);
+            SetItemIfValueNotNull(json, StorageJsonKeys.Name, Name);
+            SetItemIfValueNotNull(json, StorageJsonKeys.GivenName, GivenName);
+            SetItemIfValueNotNull(json, StorageJsonKeys.FamilyName, FamilyName);
+            SetItemIfValueNotNull(json, StorageJsonKeys.LocalAccountId, LocalAccountId);
+            SetItemIfValueNotNull(json, StorageJsonKeys.AuthorityType, AuthorityType);
+            SetItemIfValueNotNull(json, StorageJsonKeys.Realm, TenantId);
+
+            return json;
+        }
+
+        internal string ToJsonString()
+        {
+            return ToJObject()
+                .ToString();
+        }
+    }
+}
