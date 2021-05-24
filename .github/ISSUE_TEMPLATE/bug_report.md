@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Please do NOT file bugs without filling in this form.
-title: '[Bug] '
+title: "[Bug] "
 labels: ''
 assignees: ''
 
@@ -53,4 +53,4 @@ A clear and concise description of what happens, e.g. exception is thrown, UI fr
 <!--- Only if you have suggestions on a fix for the bug -->
 
 **Additional context/ Logs / Screenshots**
-Add any other context about the problem here, such as logs and screebshots. 
+Add any other context about the problem here, such as logs and screebshots.
