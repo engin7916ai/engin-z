@@ -1,0 +1,35 @@
+# CI builds should be triggered on the master branch only
+trigger:
+  branches:
+    include:
+    - 'master'
+
+# Create a daily midnight build for CI builds on master to ensure our build functions
+schedules:
+- cron: "0 0 * * *"
+  displayName: Daily midnight build
+  branches:
+    include:
+    - master
+
+pr: none
+
+variables:
+  BuildPlatform: 'any cpu'
+  BuildConfiguration: 'debug'
+
+
+stages:
+- stage:
+  jobs:
+  - job: 'BuildAndTest' 
+    pool:
+      vmImage: 'windows-latest'
+      demands:
+      - msbuild
+      - visualstudio
+
+    steps:
+
+    - template: template-ci-and-pr.yaml
+
