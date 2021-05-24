@@ -1,0 +1,41 @@
+# template-restore-build-libsandsamples.yaml
+# Performs Nuget Restore and Build of LibsAndSamples.sln based on BuildPlatform and BuildConfiguration
+
+parameters:
+  BuildPlatform: 'any cpu'
+  BuildConfiguration: 'debug'
+  MsalClientSemVer: '4.0.0-devopsbuild'
+
+steps:
+- task: VSBuild@1
+  displayName: 'NuGet restore LibsAndSamples.sln'
+  inputs:
+    solution: LibsAndSamples.sln
+    vsVersion: '15.0'
+    msbuildArgs: '/t:restore'
+    platform: ${{ parameters.BuildPlatform }}
+    configuration: ${{ parameters.BuildConfiguration }}
+
+- task: VSBuild@1
+  displayName: 'Build solution LibsAndSamples.sln'
+  inputs:
+    solution: LibsAndSamples.sln
+    vsVersion: '15.0'
+    msbuildArgs: '/p:RunCodeAnalysis=false /p:MsalClientSemVer=${{ parameters.MsalClientSemVer }} /p:SourceLinkCreate=true /p:ContinousIntegrationBuild=true'
+    platform: ${{ parameters.BuildPlatform }}
+    configuration: ${{ parameters.BuildConfiguration }}
+
+- task: CopyFiles@2
+  displayName: 'Stage Device Authentication Tests'
+  inputs:
+    SourceFolder: tests/Microsoft.Identity.Test.Integration.Win8
+    Contents: '**/*'
+    TargetFolder: '$(build.artifactstagingdirectory)/DeviceAuth'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: DeviceAuth'
+
+- task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+  displayName: 'Component Detection'
+  inputs:
+    failOnAlert: true
