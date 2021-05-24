@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  
+  <PropertyGroup Label="Target Frameworks">
+    <TargetFrameworkNetDesktop461>net461</TargetFrameworkNetDesktop461>
+    <TargetFrameworkNetStandard>netstandard2.0</TargetFrameworkNetStandard>
+    <TargetFrameworkNetCore>netcoreapp3.1</TargetFrameworkNetCore>    
+    
+    <TargetFrameworks>$(TargetFrameworkNetStandard);$(TargetFrameworkNetCore);</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOsPlatform('Windows'))">$(TargetFrameworks);$(TargetFrameworkNetDesktop461);</TargetFrameworks>
+
+    <UseWindowsForms>true</UseWindowsForms>
+    <NoWarn>$(NoWarn);NU5131;</NoWarn>
+
+    <!-- This assembly is not part of the product and should not be packaged-->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <Import Project="../../flags.props" />
+  <Import Project="pca.references.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Microsoft.Identity.Client.Shared\Microsoft.Identity.Client.Shared.csproj" />
+  </ItemGroup>
+  
+</Project>
+
